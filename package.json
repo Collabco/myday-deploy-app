@@ -1,0 +1,40 @@
+{
+  "name": "@collabco/myday-deploy-app",
+  "version": "1.0.0",
+  "description": "Utility to upload and update apps on myday platform",
+  "author": "Kamil Burek <kamil.burek@collabco.co.uk>",
+  "keywords": [
+    "collabco",
+    "myday",
+    "cli"
+  ],
+  "homepage": "https://github.com/Collabco/myday-deploy-app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Collabco/myday-deploy-app.git"
+  },
+  "main": "src/index.js",
+  "bin": {
+    "@collabco/myday-deploy-app": "./bin/cli.js",
+    "myday-deploy-app": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "src/"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "start": "node ./cli.js"
+  },
+  "dependencies": {
+    "chalk": "3.0.0",
+    "request": "2.88.0",
+    "request-promise-native": "1.0.8",
+    "yargs": "15.0.2"
+  },
+  "engines": {
+    "node": ">=10.16.0"
+  }
+}

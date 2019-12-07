@@ -1,0 +1,43 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "deploy v2",
+      "program": "${workspaceFolder}/cli.js",
+      "args": [
+        "--appId", "tenantalias.appname",
+        "--file", "path/to/app.zip",
+        "--platform", "v2",
+        "--tenantId", "Your tenant ID",
+        "--apiUrl", "Base URL for myday APIs",
+        "--idSrvUrl", "Base URL for myday identity server",
+        "--clientId", "Your client ID",
+        "--clientSecret", "Your client secret",
+        "--verbose",
+        "--dry"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "deploy v3",
+      "program": "${workspaceFolder}/cli.js",
+      "args": [
+        "--appId", "tenantalias.appname",
+        "--file", "path/to/app.zip",
+        "--tenantId", "Your tenant ID",
+        "--apiUrl", "Base URL for myday APIs",
+        "--idSrvUrl", "Base URL for myday identity server",
+        "--clientId", "Your client ID",
+        "--clientSecret", "Your client secret",
+        "--verbose",
+        "--dry"
+      ]
+    }
+  ]
+}
