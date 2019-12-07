@@ -1,21 +1,39 @@
+'use strict';
+
 const { bold } = require('chalk');
 const request = require('request-promise-native');
 const { createReadStream } = require('fs');
 
 class MydayDeployApp {
-  constructor({ appId, file, platform, tenantId, apiUrl, idSrvUrl, clientId, clientSecret, verbose, silent, dry }) {
+  /**
+   * Utility to upload and update apps on myday platform
+   *
+   * @param {Object} options Deployment options
+   * @param {string} options.appId Application ID, e.g. `tenantalias.appname`
+   * @param {string} options.file Path to a zip archive (app package) to upload
+   * @param {('v3'|'v2')} [options.platform=v3] Platform version
+   * @param {string} [options.tenantId] Tenant, required for tenant-level apps
+   * @param {string} options.apiUrl Base URL for myday APIs
+   * @param {string} options.idSrvUrl Base URL for myday Identity Server
+   * @param {string} options.clientId OAuth client ID
+   * @param {string} options.clientSecret OAuth client secret
+   * @param {boolean} [options.verbose] Verbose mode (additional output)
+   * @param {boolean} [options.silent] Silent mode (disable output)
+   * @param {boolean} [options.dryRun] Dry run, does not upload the app
+   */
+  constructor({ appId, file, platform, tenantId, apiUrl, idSrvUrl, clientId, clientSecret, verbose, silent, dryRun }) {
 
-    // Application ID, e.g. `collabco.attendancecapture`
+    // Application ID, e.g. `tenantalias.appname`
     this.appId = appId;
 
-    // Zip archive with the app to upload
+    // Path to a zip archive (app package) to upload
     this.file = file;
 
     // Running on legacy vs new myday platform
     this.legacy = platform === 'v2';
 
     // Tenant ID, only for when uploading a tenant-level app
-    // Yargs seems to pass `null` as a string. Oh well.
+    // Yargs (CLI) seems to pass `null` as a string. Oh well.
     this.tenantId = typeof tenantId === 'string' && tenantId !== 'null' ? tenantId : null;
 
     // Either global (for all tenants) or tenant (for just one tenant) level app
@@ -24,7 +42,7 @@ class MydayDeployApp {
     // Base myday API URL to perform app upload/update operations
     this.apiUrl = apiUrl;
 
-    // Identity Server token endpoint address and other details for OAuth client credentials
+    // Identity Server base address and other details for OAuth client credentials flow
     this.idSrvUrl = idSrvUrl;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
@@ -34,22 +52,24 @@ class MydayDeployApp {
     const noop = () => {};
     this.verboseLog = verbose ? console.log : noop;
     this.log = !silent ? console.log : noop;
-    this.dry = dry;
+    this.dryRun = dryRun;
 
     // Default request helper
     this.req = request.defaults({ json: true });
   }
 
   /**
-   * Run OAuth client credentials flow to obtain an access token
-   * required for myday API requests
+   * Run OAuth client credentials flow against myday Identity Server to obtain
+   * an access token required for myday API requests
    *
-   * This requires clients being set on all relevant environments
+   * This requires clients being set on all relevant environments, please
+   * contact Collabco Support to get access
    *
-   * @param {string} url Identity Server URL
+   * @param {string} url Base URL for myday Identity Server
    * @param {string} client_id OAuth client ID
    * @param {string} client_secret OAuth client secret
-   * @param {string} scope OAuth scopes, separated by space
+   * @param {string} scope OAuth scopes to request, separated by space
+   * @returns {Promise<void>}
    */
   async authorize(url, client_id, client_secret, scope) {
 
@@ -57,6 +77,7 @@ class MydayDeployApp {
 
     // Extract just access token property
     // Token type (`Bearer`) and expiry time (usually 1 hour) will always be the same
+    // Note: Might be worth querying `/.well-known/openid-configuration` first
     const { access_token } = await this.req({
       url: url + '/connect/token',
       method: 'POST',
@@ -71,20 +92,20 @@ class MydayDeployApp {
   }
 
   /**
-   * Query myday AppStore API to get a list of all apps for a given scope
+   * Query myday API to get a list of all apps for a given scope
    * and get current version number of the app we're interested in.
    *
-   * This can be `null` when the app was not found, e.g. it was not uploaded
-   * to this environment yet.
+   * This can be `undefined` when the app was not found, e.g. it was not
+   * uploaded to this environment yet.
    *
-   * Note: This can blow up when app is invisible due to feature flags, but
-   * probably only for tenant-level apps, so this will happen exactly… never.
+   * Note: This might not work for apps hidden via feature flags that do not
+   * advertise their presence.
    *
    * @param {string} id Application ID
    * @param {boolean} legacy Legacy platform
    * @param {string} baseUrl Base myday API URL for a given platform
-   * @param {string} scope Application scope, `Global` or `Tenant`
-   * @returns {Promise<string>} Current version number
+   * @param {('Global'|'Tenant')} scope Application scope
+   * @returns {Promise<?string>} Current version number (semver)
    */
   async getCurrentVersion(id, legacy, baseUrl, scope) {
 
@@ -98,12 +119,13 @@ class MydayDeployApp {
     this.verboseLog(`URL: ${bold(url)}`);
     this.verboseLog(`Fetching existing apps…`);
 
-    // Execute an authenticated request to myday AppStore
+    // Execute an authenticated request to myday API
     const list = await this.req({ url });
 
     this.verboseLog(`Found ${bold(list.length)} apps for scope ${bold(scope)}.`);
 
     // Find and app of interest by ID
+    // New platform returns version history in a addition to its model
     const found = legacy ?
       list.find(x => x.id === id) :
       list.find(x => x.model.id === id);
@@ -113,21 +135,21 @@ class MydayDeployApp {
 
     this.verboseLog(model ?
       `Found app ${bold(legacy ? model.name : model.names['en-GB'])} with version ${bold(model.version)}.` :
-      `Could not find such app on this environment. Is this a first time its uploaded?`
+      `Could not find such app on this environment. Is this a new app?`
     );
 
-    // If such app was found, return its version number (string)
+    // If such app was found, return its version number
     return model ? model.version : undefined;
   }
 
   /**
-   * Upload application package to myday AppStore.
+   * Upload application package to myday
    *
    * On new myday platform there are two steps, because we have to submit
-   * our file to Files API first and only then request an update in AppStore
+   * our file to Files API first and only then request an update in Apps API
    * by `fileId` obtained.
    *
-   * Note: Version numbers matter, because AppStore API will stop you
+   * Note: Version numbers matter, because Apps API will stop you
    * from uploading apps with versions lower (semver) than previous ones.
    * However, also worth noting, exact same versions should work.
    *
@@ -135,9 +157,9 @@ class MydayDeployApp {
    * @param {string} id Application ID
    * @param {boolean} legacy Legacy platform
    * @param {string} baseUrl Base myday API URL for a given platform
-   * @param {string} scope Application scope, e.g. `Global` or `Tenant`
-   * @param {boolean} update Attempts and update instead of first upload, because app already exists
-   * @returns {Promise<string>} New app version number
+   * @param {('Global'|'Tenant')} scope Application scope
+   * @param {boolean} update Attempts an update operation for existing apps
+   * @returns {Promise<string>} New app version number (semver)
    */
   async uploadApp(file, id, legacy, baseUrl, scope, update) {
 
@@ -153,34 +175,33 @@ class MydayDeployApp {
     this.verboseLog(`URL: ${bold(url)}`);
     this.verboseLog(`Uploading zip file…`);
 
-    // Send a multi-part form request with the zip archive
-    const fileUpload = await this.req({
+    // Send a multi-part form request with the zip archive with a standardised filename
+    const first = await this.req({
       url,
       method: 'POST',
-      formData: { file: createReadStream(file) }
+      formData: { file: createReadStream(file, `${id}.zip`) }
     });
 
     // For legacy platform, that's the only request
     // App model is returned, so we can exit with new version number
     if (legacy) {
-      this.verboseLog(`${update?'Updated':'Uploaded new'} ${bold(fileUpload.name)} app with version ${bold(fileUpload.version)}.\n`);
-      return fileUpload.version;
+      this.verboseLog(`${update?'Updated':'Uploaded new'} ${bold(first.name)} app with version ${bold(first.version)}.\n`);
+      return first.version;
     }
 
-    this.verboseLog(`Uploaded ${bold(fileUpload.fileId)} file with size ${bold(fileUpload.fileSize)}B.`);
+    this.verboseLog(`Uploaded ${bold(first.fileId)} file with size ${bold(first.fileSize)}B.`);
 
-    // For new platform, once we've uploaded a file, we need to use
-    // a fileId obtained to instruct AppStore APIs
+    // For new platform, once we've uploaded a file to Files API, we need to use the `fileId` obtained to instruct Apps APIs
     // Also, change request method depending on update/upload scenario
-    const storeRequest = await this.req({
-      url: `${baseUrl}/app/store?appId=${id}&collectionScope=${scope}&fileId=${fileUpload.fileId}`,
+    const second = await this.req({
+      url: `${baseUrl}/app/store?appId=${id}&collectionScope=${scope}&fileId=${first.fileId}`,
       method: update ? 'PUT' : 'POST'
     });
 
-    this.verboseLog(`${update?'Updated':'Uploaded new'} ${bold(storeRequest.names['en-GB'])} app with version ${bold(storeRequest.version)}.\n`);
+    this.verboseLog(`${update?'Updated':'Uploaded new'} ${bold(second.names['en-GB'])} app with version ${bold(second.version)}.\n`);
 
     // App model is returned, so we can exit with new version number
-    return storeRequest.version;
+    return second.version;
   }
 
   /**
@@ -201,7 +222,7 @@ class MydayDeployApp {
       clientScope:  ${bold(this.clientScope)}\n`.replace(/\n\s{6}/g, '\n - ')
     );
 
-    // Pre-authorise and augment the request helper
+    // Get an access token and augment the request helper
     await this.authorize(
       this.idSrvUrl,
       this.clientId,
@@ -217,7 +238,8 @@ class MydayDeployApp {
       this.appScope
     );
 
-    if (this.dry) {
+    // If a dry run was selected, finish here
+    if (this.dryRun) {
       return this.log(`\n${!!currentVersion ?
         `Current ${bold(this.appId)} version is ${bold(currentVersion)}` :
         `App ${bold(this.appId)} does not exist yet`}. Dry run selected, quitting.`

@@ -15,11 +15,11 @@
         "--platform", "v2",
         "--tenantId", "Your tenant ID",
         "--apiUrl", "Base URL for myday APIs",
-        "--idSrvUrl", "Base URL for myday identity server",
+        "--idSrvUrl", "Base URL for myday Identity Server",
         "--clientId", "Your client ID",
         "--clientSecret", "Your client secret",
         "--verbose",
-        "--dry"
+        "--dryRun"
       ]
     },
     {
@@ -32,11 +32,11 @@
         "--file", "path/to/app.zip",
         "--tenantId", "Your tenant ID",
         "--apiUrl", "Base URL for myday APIs",
-        "--idSrvUrl", "Base URL for myday identity server",
+        "--idSrvUrl", "Base URL for myday Identity Server",
         "--clientId", "Your client ID",
         "--clientSecret", "Your client secret",
         "--verbose",
-        "--dry"
+        "--dryRun"
       ]
     }
   ]

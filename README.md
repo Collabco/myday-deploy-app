@@ -20,6 +20,11 @@ Usage:
 myday-deploy-app [options]
 ```
 
+You can also use [`npx`](https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b) to run it directly, for example in CI/CD pipelines:
+```bash
+npx @collabco/myday-deploy-app [options]
+```
+
 Example v2 deployment:
 
 ```bash
@@ -29,11 +34,11 @@ myday-deploy-app \
   --platform "v2" \
   --tenantId "Your tenant ID" \
   --apiUrl "Base URL for myday APIs" \
-  --idSrvUrl "Base URL for myday identity server" \
+  --idSrvUrl "Base URL for myday Identity Server" \
   --clientId "Your client ID" \
   --clientSecret "Your client secret" \
   --verbose \
-  --dry
+  --dryRun
 ```
 
 Example v3 deployment:
@@ -44,11 +49,11 @@ myday-deploy-app \
   --file "path/to/app.zip" \
   --tenantId "Your tenant ID" \
   --apiUrl "Base URL for myday APIs" \
-  --idSrvUrl "Base URL for myday identity server" \
+  --idSrvUrl "Base URL for myday Identity Server" \
   --clientId "Your client ID" \
   --clientSecret "Your client secret" \
   --verbose \
-  --dry
+  --dryRun
 ```
 
 ## Node Interface
@@ -73,8 +78,33 @@ const config = {
   clientId: 'Your client ID',
   clientSecret: 'Your client secret',
   verbose: true,
-  dry: true
+  dryRun: true
 };
 
 const instance = new MydayDeployApp(config).start();
 ```
+
+## Configuration
+
+App options:
+- `appId` _(required)_: Application ID, e.g. `tenantalias.appname`
+- `file` _(required)_: Path to a zip archive with an app
+
+Platform options:
+- `platform` _(optional)_: Platform version, either `v3` (default) or `v2`
+- `tenantId` _(optional)_: Tenant ID, required for tenant-level apps
+- `apiUrl` _(required)_: Base URL for myday APIs
+
+Identity Server options:
+- `idSrvUrl` _(required)_: Base URL for myday Identity Server
+- `clientId` _(required)_: OAuth client ID
+- `clientSecret` _(required)_: OAuth client secret
+
+Additional options:
+- `verbose` _(optional)_: Verbose mode (additional output)
+- `silent` _(optional)_: Silent mode (disable output)
+- `dryRun` _(optional)_: Dry run, does not upload the app
+
+CLI only options:
+- `help`: Displays help
+- `version`: Displays package version
