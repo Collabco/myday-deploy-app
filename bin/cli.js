@@ -24,7 +24,7 @@ const argv = require('yargs')
   .option('silent', { describe: 'Silent mode (disable output)', type: 'boolean', conflicts: 'verbose' })
   .option('dryRun', { describe: 'Dry run, does not upload the app', type: 'boolean' })
 
-  .epilogue('For more information and OAuth access, contact Collabco support.')
+  .epilogue('For more information and OAuth access, contact Collabco Support.')
 
   .check(args => {
     if (!args.appId.match(/^[a-z][a-z0-9]+\.[a-z][a-z0-9]+$/)) throw new Error('Invalid appId format');

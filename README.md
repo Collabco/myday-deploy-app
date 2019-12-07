@@ -1,10 +1,15 @@
 # @collabco/myday-deploy-app
 
+[![npm-version](https://img.shields.io/npm/v/@collabco/myday-deploy-app)](https://www.npmjs.com/package/@collabco/myday-deploy-app) [![node-version](https://img.shields.io/node/v/@collabco/myday-deploy-app)](https://nodejs.org) [![dependencies](https://img.shields.io/librariesio/release/npm/@collabco/myday-deploy-app)](https://github.com/Collabco/myday-deploy-app/blob/master/package.json)
+
+[![myday](./myday.png)]((http://myday.collabco.com))
+
 Utility to upload and update apps on [myday](http://myday.collabco.com) platform, by [Collabco](https://collabco.com).
+
 
 ## Prerequisites
 
-Please contact [Collabco support](https://support.mydaycloud.com) for API and authentication details.
+Please contact Collabco Support for API and authentication details.
 
 ## Command Line Interface
 
