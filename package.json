@@ -13,20 +13,16 @@
     "type": "git",
     "url": "git+https://github.com/Collabco/myday-deploy-app.git"
   },
-  "main": "src/index.js",
+  "main": "index.js",
   "bin": {
-    "@collabco/myday-deploy-app": "./bin/cli.js",
-    "myday-deploy-app": "./bin/cli.js"
+    "myday-deploy-app": "cli.js"
   },
   "files": [
-    "bin/",
-    "src/"
+    "cli.js",
+    "index.js"
   ],
   "publishConfig": {
     "access": "public"
-  },
-  "scripts": {
-    "start": "node ./bin/cli.js"
   },
   "dependencies": {
     "chalk": "3.0.0",

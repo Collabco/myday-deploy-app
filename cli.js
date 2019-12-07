@@ -2,7 +2,7 @@
 'use strict';
 
 const { accessSync, constants } = require('fs');
-const MydayDeployApp = require('../src');
+const MydayDeployApp = require('./index');
 const argv = require('yargs')
   .usage('Usage: $0 [options]')
 
@@ -25,7 +25,6 @@ const argv = require('yargs')
   .option('dryRun', { describe: 'Dry run, does not upload the app', type: 'boolean' })
 
   .epilogue('For more information and OAuth access, contact Collabco Support.')
-
   .check(args => {
     if (!args.appId.match(/^[a-z][a-z0-9]+\.[a-z][a-z0-9]+$/)) throw new Error('Invalid appId format');
     try { new URL(args.apiUrl); } catch (e) { throw new Error('Invalid apiUrl address'); }
@@ -33,8 +32,6 @@ const argv = require('yargs')
     try { accessSync(args.file, constants.F_OK); } catch (e) { throw new Error('Invalid file path or file does not exist'); }
     return true;
   })
-  .hide('version')
-  .strict()
   .argv;
 
 const instance = new MydayDeployApp(argv).start();
