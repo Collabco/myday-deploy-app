@@ -3,6 +3,7 @@
 const { bold } = require('chalk');
 const request = require('request-promise-native');
 const { createReadStream } = require('fs');
+const { normalize } = require('path');
 
 class MydayDeployApp {
   /**
@@ -24,10 +25,11 @@ class MydayDeployApp {
   constructor({ appId, file, platform, tenantId, apiUrl, idSrvUrl, clientId, clientSecret, verbose, silent, dryRun }) {
 
     // Application ID, e.g. `tenantalias.appname`
+    if (!appId.match(/^[a-z][a-z0-9]+\.[a-z][a-z0-9]+$/)) throw new Error('Invalid appId: ' + appId);
     this.appId = appId;
 
-    // Path to a zip archive (app package) to upload
-    this.file = file;
+    // Zip archive (app package) to upload
+    this.file = createReadStream(normalize(file));
 
     // Running on legacy vs new myday platform
     this.legacy = platform === 'v2';
@@ -40,10 +42,10 @@ class MydayDeployApp {
     this.appScope = this.tenantId ? 'Tenant' : 'Global';
 
     // Base myday API URL to perform app upload/update operations
-    this.apiUrl = apiUrl;
+    this.apiUrl = new URL(apiUrl);
 
     // Identity Server base address and other details for OAuth client credentials flow
-    this.idSrvUrl = idSrvUrl;
+    this.idSrvUrl = new URL(idSrvUrl);
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.clientScope = this.legacy ? 'myday-api' : 'myday_api';
@@ -73,13 +75,15 @@ class MydayDeployApp {
    */
   async authorize(url, client_id, client_secret, scope) {
 
+    this.verboseLog(`Requesting Identity Server details…`);
+
+    const { token_endpoint } = await this.req({ url: url + '/.well-known/openid-configuration' });
+    this.verboseLog(`Token endpoint: ${bold(token_endpoint)}`);
     this.verboseLog(`Requesting an access token…`);
 
     // Extract just access token property
-    // Token type (`Bearer`) and expiry time (usually 1 hour) will always be the same
-    // Note: Might be worth querying `/.well-known/openid-configuration` first
     const { access_token } = await this.req({
-      url: url + '/connect/token',
+      url: token_endpoint,
       method: 'POST',
       form: { grant_type: 'client_credentials', client_id, client_secret, scope }
     });
@@ -116,7 +120,7 @@ class MydayDeployApp {
       `${baseUrl}/apps?scope=${scope}` :
       `${baseUrl}/app/store/all?collectionScope=${scope}`;
 
-    this.verboseLog(`URL: ${bold(url)}`);
+    this.verboseLog(`Apps endpoint: ${bold(url)}`);
     this.verboseLog(`Fetching existing apps…`);
 
     // Execute an authenticated request to myday API
@@ -153,7 +157,7 @@ class MydayDeployApp {
    * from uploading apps with versions lower (semver) than previous ones.
    * However, also worth noting, exact same versions should work.
    *
-   * @param {string} file Path to a zip archive
+   * @param {import('fs').ReadStream} file Zip archive stream
    * @param {string} id Application ID
    * @param {boolean} legacy Legacy platform
    * @param {string} baseUrl Base myday API URL for a given platform
@@ -175,11 +179,11 @@ class MydayDeployApp {
     this.verboseLog(`URL: ${bold(url)}`);
     this.verboseLog(`Uploading zip file…`);
 
-    // Send a multi-part form request with the zip archive with a standardised filename
+    // Send a multi-part form request with the zip archive
     const first = await this.req({
       url,
       method: 'POST',
-      formData: { file: createReadStream(file, `${id}.zip`) }
+      formData: { file }
     });
 
     // For legacy platform, that's the only request
@@ -211,7 +215,7 @@ class MydayDeployApp {
 
     this.verboseLog(`\nStarting with following configuration:
       appId:        ${bold(this.appId)}
-      file:         ${bold(this.file)}
+      file:         ${bold(this.file.path)}
       legacy:       ${bold(this.legacy)}
       tenantId:     ${bold(this.tenantId)}
       appScope:     ${bold(this.appScope)}
