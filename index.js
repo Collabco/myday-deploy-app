@@ -42,10 +42,12 @@ class MydayDeployApp {
     this.appScope = this.tenantId ? 'Tenant' : 'Global';
 
     // Base myday API URL to perform app upload/update operations
-    this.apiUrl = new URL(apiUrl);
+    new URL(apiUrl); // throws exception if invalid
+    this.apiUrl = apiUrl;
 
     // Identity Server base address and other details for OAuth client credentials flow
-    this.idSrvUrl = new URL(idSrvUrl);
+    new URL(idSrvUrl); // throws exception if invalid
+    this.idSrvUrl = idSrvUrl;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.clientScope = this.legacy ? 'myday-api' : 'myday_api';
@@ -76,8 +78,8 @@ class MydayDeployApp {
   async authorize(url, client_id, client_secret, scope) {
 
     this.verboseLog(`Requesting Identity Server details…`);
-
     const { token_endpoint } = await this.req({ url: url + '/.well-known/openid-configuration' });
+
     this.verboseLog(`Token endpoint: ${bold(token_endpoint)}`);
     this.verboseLog(`Requesting an access token…`);
 
@@ -138,7 +140,7 @@ class MydayDeployApp {
     const model = found ? legacy ? found : found.model : undefined;
 
     this.verboseLog(model ?
-      `Found app ${bold(legacy ? model.name : model.names['en-GB'])} with version ${bold(model.version)}.` :
+      `Found ${bold(legacy ? model.name : model.names['en-GB'])} app with version ${bold(model.version)}.` :
       `Could not find such app on this environment. Is this a new app?`
     );
 
@@ -173,7 +175,7 @@ class MydayDeployApp {
     // For legacy, also determine its inner part depending on update/upload scenario
     // For new myday, submit the file to Files API
     const url = legacy ?
-      `${baseUrl}/apps/${update?'update':'upload'}?appId=${id}&scope=${scope}` :
+      `${baseUrl}/apps/${update ? 'update' : 'upload'}?appId=${id}&scope=${scope}` :
       `${baseUrl}/files/file?virtualPath=apps&collectionScope=${scope}`;
 
     this.verboseLog(`URL: ${bold(url)}`);
@@ -189,7 +191,7 @@ class MydayDeployApp {
     // For legacy platform, that's the only request
     // App model is returned, so we can exit with new version number
     if (legacy) {
-      this.verboseLog(`${update?'Updated':'Uploaded new'} ${bold(first.name)} app with version ${bold(first.version)}.\n`);
+      this.verboseLog(`${update ? 'Updated' : 'Uploaded new'} ${bold(first.name)} app with version ${bold(first.version)}.\n`);
       return first.version;
     }
 
@@ -202,7 +204,7 @@ class MydayDeployApp {
       method: update ? 'PUT' : 'POST'
     });
 
-    this.verboseLog(`${update?'Updated':'Uploaded new'} ${bold(second.names['en-GB'])} app with version ${bold(second.version)}.\n`);
+    this.verboseLog(`${update ? 'Updated' : 'Uploaded new'} ${bold(second.names['en-GB'])} app with version ${bold(second.version)}.\n`);
 
     // App model is returned, so we can exit with new version number
     return second.version;
@@ -222,7 +224,7 @@ class MydayDeployApp {
       apiUrl:       ${bold(this.apiUrl)}
       idSrvUrl:     ${bold(this.idSrvUrl)}
       clientId:     ${bold(this.clientId)}
-      clientSecret: ${bold(this.clientSecret.charAt(0) + '*'.repeat(this.clientSecret.length-2) + this.clientSecret.charAt(this.clientSecret.length-1))}
+      clientSecret: ${bold(this.clientSecret.charAt(0) + '*'.repeat(this.clientSecret.length - 2) + this.clientSecret.charAt(this.clientSecret.length - 1))}
       clientScope:  ${bold(this.clientScope)}\n`.replace(/\n\s{6}/g, '\n - ')
     );
 
@@ -246,7 +248,7 @@ class MydayDeployApp {
     if (this.dryRun) {
       return this.log(`\n${!!currentVersion ?
         `Current ${bold(this.appId)} version is ${bold(currentVersion)}` :
-        `App ${bold(this.appId)} does not exist yet`}. Dry run selected, quitting.`
+        `App ${bold(this.appId)} does not exist yet`}. Dry run, quitting.`
       );
     }
 
