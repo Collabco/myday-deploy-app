@@ -1,6 +1,6 @@
 {
   "name": "@collabco/myday-deploy-app",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Utility to upload and update apps on myday platform",
   "author": "Kamil Burek <kamil.burek@collabco.co.uk>",
   "keywords": [
