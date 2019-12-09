@@ -156,7 +156,7 @@ class MydayDeployApp {
    * by `fileId` obtained.
    *
    * Note: Version numbers matter, because Apps API will stop you
-   * from uploading apps with versions lower (semver) than previous ones.
+   * from uploading apps with versions lower (semver) than previous one.
    * However, also worth noting, exact same versions should work.
    *
    * @param {import('fs').ReadStream} file Zip archive stream

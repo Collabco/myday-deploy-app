@@ -2,9 +2,9 @@
 
 [![npm-version](https://img.shields.io/npm/v/@collabco/myday-deploy-app)](https://www.npmjs.com/package/@collabco/myday-deploy-app) [![node-version](https://img.shields.io/node/v/@collabco/myday-deploy-app)](https://nodejs.org) [![dependencies](https://img.shields.io/librariesio/release/npm/@collabco/myday-deploy-app)](https://github.com/Collabco/myday-deploy-app/blob/master/package.json)
 
-[![myday](./myday.png)]((http://myday.collabco.com))
+[![myday](./myday.png)]((https://myday.collabco.com))
 
-Utility to upload and update apps on [myday](http://myday.collabco.com) platform, by [Collabco](https://collabco.com).
+Utility to upload and update apps on [myday](https://myday.collabco.com) platform, by [Collabco](https://collabco.com).
 
 
 ## Prerequisites
@@ -25,7 +25,7 @@ Usage:
 myday-deploy-app [options]
 ```
 
-You can also use [`npx`](https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b) to run it directly, for example in CI/CD pipelines:
+Use [`npx`](https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b) to run it anywhere, for example in CI/CD pipelines:
 ```bash
 npx @collabco/myday-deploy-app [options]
 ```
@@ -72,7 +72,7 @@ npm install --save-dev @collabco/myday-deploy-app
 Usage:
 
 ```js
-const MydayDeployApp = require('myday-deploy-app');
+const MydayDeployApp = require('@collabco/myday-deploy-app');
 
 const config = {
   appId: 'tenantalias.appname',
