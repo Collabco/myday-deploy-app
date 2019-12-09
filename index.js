@@ -90,7 +90,7 @@ class MydayDeployApp {
       form: { grant_type: 'client_credentials', client_id, client_secret, scope }
     });
 
-    this.verboseLog(`Access token: ${bold(access_token)}`);
+    this.verboseLog(`Access token: ${bold(access_token.charAt(0) + '*'.repeat(31))}`);
 
     // Extend existing request helper defaults with a bearer token authentication
     // This is overriding our existing helper made in the constructor
@@ -224,7 +224,7 @@ class MydayDeployApp {
       apiUrl:       ${bold(this.apiUrl)}
       idSrvUrl:     ${bold(this.idSrvUrl)}
       clientId:     ${bold(this.clientId)}
-      clientSecret: ${bold(this.clientSecret.charAt(0) + '*'.repeat(this.clientSecret.length - 2) + this.clientSecret.charAt(this.clientSecret.length - 1))}
+      clientSecret: ${bold(this.clientSecret.charAt(0) + '*'.repeat(this.clientSecret.length - 1))}
       clientScope:  ${bold(this.clientScope)}\n`.replace(/\n\s{6}/g, '\n - ')
     );
 
