@@ -2,7 +2,7 @@
 
 [![npm-version](https://img.shields.io/npm/v/@collabco/myday-deploy-app)](https://www.npmjs.com/package/@collabco/myday-deploy-app) [![node-version](https://img.shields.io/node/v/@collabco/myday-deploy-app)](https://nodejs.org) [![dependencies](https://img.shields.io/librariesio/release/npm/@collabco/myday-deploy-app)](https://github.com/Collabco/myday-deploy-app/blob/master/package.json)
 
-[![myday](./myday.png)]((https://myday.collabco.com))
+[![myday](./myday.png)](https://myday.collabco.com)
 
 Utility to upload and update apps on [myday](https://myday.collabco.com) platform, by [Collabco](https://collabco.com).
 
