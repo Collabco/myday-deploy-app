@@ -21,9 +21,6 @@
     "cli.js",
     "index.js"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "dependencies": {
     "chalk": "4.1.2",
     "request": "2.88.0",
